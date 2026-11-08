@@ -124,6 +124,10 @@ phomymo/
 └── README.md
 ```
 
+## Nonprinting SVG cutline guides
+
+Imported design JSON may include an optional `labelSize.cutlineSvg` SVG string. Phomymo draws only its `path` elements tagged with `data-role="cut"` or `data-role="perforation"` as editor guides. Coordinates use millimeters from the SVG `viewBox`. The guide is not included in print, PNG, or PDF raster output. Omit it for ordinary labels; continuous-label size changes preserve its physical coordinates rather than stretching the path.
+
 ## Acknowledgments
 
 Protocol research and inspiration:

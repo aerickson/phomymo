@@ -1,0 +1,40 @@
+{
+  "name": "Cable Tag 4850+52 (4.02 x 1.89 in)",
+  "version": 3,
+  "labelSize": {
+    "width": 102,
+    "height": 48,
+    "round": false,
+    "continuous": false,
+    "cutlineSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 102 48\"><path data-role=\"cut\" d=\"M 2.8 0.2 H 47.5 Q 50 0.2 50 2.7 V 27.2 Q 50 29.8 52.6 29.8 H 99.4 Q 102 29.8 102 32.3 V 39.7 Q 102 42.2 99.4 42.2 H 52.6 Q 50 42.2 50 44.8 V 45.4 Q 50 48 47.4 48 H 2.6 Q 0 48 0 45.4 V 2.8 Q 0 0.2 2.8 0.2 Z\"/><path data-role=\"perforation\" d=\"M 0 24 H 50\"/></svg>"
+  },
+  "isTemplate": true,
+  "templateFields": [
+    "CableLabel"
+  ],
+  "elements": [
+    {
+      "id": "cable-label-field",
+      "type": "text",
+      "zone": 0,
+      "x": 544,
+      "y": 288,
+      "width": 192,
+      "height": 32,
+      "rotation": 0,
+      "text": "{{CableLabel}}",
+      "fontSize": 24,
+      "color": "black",
+      "align": "center",
+      "verticalAlign": "middle",
+      "fontFamily": "Inter, sans-serif",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textDecoration": "none",
+      "background": "transparent",
+      "noWrap": true,
+      "clipOverflow": true,
+      "autoScale": true
+    }
+  ]
+}

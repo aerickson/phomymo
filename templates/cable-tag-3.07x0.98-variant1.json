@@ -1,0 +1,63 @@
+{
+  "name": "Cable Tag 3.07 x 0.98 in (78 x 25 mm)-variant1",
+  "version": 3,
+  "labelSize": {
+    "width": 78,
+    "height": 25,
+    "round": false,
+    "continuous": false,
+    "cutlineSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 78 25\"><path data-role=\"cut\" d=\"M 2.4 0.2 H 35.5 Q 38 0.2 38 2.7 V 10.7 Q 38 11.7 36.9 12.1 Q 35.8 12.5 36.9 12.9 Q 38 13.3 38 14.7 V 15 H 75.5 Q 78 15 78 17.5 V 20 Q 78 22.5 75.5 22.5 H 38 V 22.6 Q 38 24.8 35.5 24.8 H 2.5 Q 0.2 24.8 0.2 22.5 V 2.6 Q 0.2 0.2 2.4 0.2 Z\"/><path data-role=\"perforation\" d=\"M 0.2 11.8 H 36.8\"/></svg>"
+  },
+  "isTemplate": true,
+  "templateFields": [
+    "CableLabel"
+  ],
+  "elements": [
+    {
+      "id": "cable-label-flag-front",
+      "type": "text",
+      "zone": 0,
+      "x": 16,
+      "y": 24,
+      "width": 272,
+      "height": 48,
+      "rotation": 0,
+      "text": "{{CableLabel}}",
+      "fontSize": 24,
+      "color": "black",
+      "align": "center",
+      "verticalAlign": "middle",
+      "fontFamily": "Inter, sans-serif",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textDecoration": "none",
+      "background": "transparent",
+      "noWrap": true,
+      "clipOverflow": true,
+      "autoScale": true
+    },
+    {
+      "id": "cable-label-flag-folded-side",
+      "type": "text",
+      "zone": 0,
+      "x": 16,
+      "y": 117,
+      "width": 272,
+      "height": 48,
+      "rotation": 180,
+      "text": "{{CableLabel}}",
+      "fontSize": 24,
+      "color": "black",
+      "align": "center",
+      "verticalAlign": "middle",
+      "fontFamily": "Inter, sans-serif",
+      "fontWeight": "normal",
+      "fontStyle": "normal",
+      "textDecoration": "none",
+      "background": "transparent",
+      "noWrap": true,
+      "clipOverflow": true,
+      "autoScale": true
+    }
+  ]
+}
