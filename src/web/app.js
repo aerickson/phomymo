@@ -1792,6 +1792,9 @@ function renderPreviewThumbnail(canvas, recordIndex) {
 
   // Render elements (simplified - reuse main renderer logic)
   state.renderer.renderAllToContext(ctx, mergedElements, []);
+  if ($('#preview-cutlines').checked) {
+    state.renderer.drawCutline(state.labelSize?.cutlineSvg, ctx);
+  }
 }
 
 /**
@@ -8134,7 +8137,19 @@ function init() {
   $('#full-preview-dialog').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) hideFullPreview();
   });
-  $('#full-preview-cutlines').addEventListener('change', () => showFullPreview(state.currentPreviewIndex));
+  const updatePreviewCutlines = (event) => {
+    const checked = event.target.checked;
+    $('#preview-cutlines').checked = checked;
+    $('#full-preview-cutlines').checked = checked;
+    $$('#preview-grid .preview-canvas').forEach(canvas => {
+      renderPreviewThumbnail(canvas, parseInt(canvas.dataset.index));
+    });
+    if (!$('#full-preview-dialog').classList.contains('hidden')) {
+      showFullPreview(state.currentPreviewIndex);
+    }
+  };
+  $('#preview-cutlines').addEventListener('change', updatePreviewCutlines);
+  $('#full-preview-cutlines').addEventListener('change', updatePreviewCutlines);
   $('#full-preview-prev').addEventListener('click', () => navigatePreview(-1));
   $('#full-preview-next').addEventListener('click', () => navigatePreview(1));
   $('#full-preview-include').addEventListener('change', (e) => {
