@@ -6,6 +6,7 @@
 node_modules/
 # don't commit our testing saves and templates
 templates/*.json
+templates/*.csv
 
 # Playwright
 test-results/
