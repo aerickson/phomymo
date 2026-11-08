@@ -38,6 +38,7 @@ export class CanvasRenderer {
 
     // Round label flag (circular instead of rectangular)
     this.isRound = false;
+    this.cutlinePathCache = new Map();
 
     // Base offset where label starts (without zoom)
     this.baseLabelOffsetX = OVERFLOW_PADDING;
@@ -573,7 +574,7 @@ export class CanvasRenderer {
    * @param {Array|string|null} selectedIds - Array of selected element IDs (or single ID for backwards compatibility)
    * @param {Array} alignmentGuides - Array of alignment guides { type: 'h'|'v', pos: number }
    */
-  renderAll(elements, selectedIds = null, alignmentGuides = []) {
+  renderAll(elements, selectedIds = null, alignmentGuides = [], cutlineSvg = null) {
     this.clear();
 
     const ctx = this.ctx;
@@ -612,6 +613,9 @@ export class CanvasRenderer {
         this.renderElement(element);
       }
     }
+
+    // Draw the optional die-cut guide in the editor only; print rasterization omits it.
+    this.drawCutline(cutlineSvg);
 
     // Draw alignment guides (after elements, before handles)
     this.drawAlignmentGuides(alignmentGuides);
@@ -717,6 +721,76 @@ export class CanvasRenderer {
     ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
     ctx.fill('evenodd');
 
+    ctx.restore();
+  }
+
+  /**
+   * Parse and cache safe path geometry from optional editor-only SVG cutline metadata.
+   * Only path data and the viewBox are used; SVG markup is never inserted into the DOM.
+   */
+  parseCutlineSvg(svgSource) {
+    if (typeof svgSource !== 'string' || svgSource.length > 20000) return null;
+    if (this.cutlinePathCache.has(svgSource)) return this.cutlinePathCache.get(svgSource);
+
+    let parsed = null;
+    try {
+      const doc = new DOMParser().parseFromString(svgSource, 'image/svg+xml');
+      const root = doc.documentElement;
+      if (root.localName !== 'svg' || doc.querySelector('parsererror')) return null;
+
+      const viewBox = (root.getAttribute('viewBox') || '')
+        .trim()
+        .split(/[\s,]+/)
+        .map(Number);
+      if (viewBox.length !== 4 || !viewBox.every(Number.isFinite) ||
+          viewBox[2] <= 0 || viewBox[3] <= 0) return null;
+
+      const paths = [];
+      for (const node of root.querySelectorAll('path')) {
+        if (paths.length >= 32) break;
+        const d = node.getAttribute('d') || '';
+        if (!d || d.length > 10000) continue;
+        const role = node.getAttribute('data-role');
+        if (role !== 'cut' && role !== 'perforation') continue;
+        paths.push({ path: new Path2D(d), role });
+      }
+      if (paths.length > 0) {
+        parsed = { viewBox, paths };
+      }
+    } catch {
+      parsed = null;
+    }
+
+    if (this.cutlinePathCache.size >= 20) this.cutlinePathCache.clear();
+    this.cutlinePathCache.set(svgSource, parsed);
+    return parsed;
+  }
+
+  /**
+   * Draw a nonprinting die-cut/perforation guide. SVG coordinates are millimeters,
+   * so the path stays its physical size if a continuous label is length-adjusted.
+   */
+  drawCutline(svgSource) {
+    const cutline = this.parseCutlineSvg(svgSource);
+    if (!cutline) return;
+
+    const ctx = this.ctx;
+    const [viewX, viewY] = cutline.viewBox;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, this.labelWidth, this.labelHeight);
+    ctx.clip();
+    ctx.scale(PX_PER_MM, PX_PER_MM);
+    ctx.translate(-viewX, -viewY);
+
+    for (const item of cutline.paths) {
+      ctx.strokeStyle = item.role === 'perforation' ? '#6b7280' : '#9ca3af';
+      ctx.lineWidth = 0.18;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.setLineDash(item.role === 'perforation' ? [0.7, 0.55] : []);
+      ctx.stroke(item.path);
+    }
     ctx.restore();
   }
 

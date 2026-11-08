@@ -1101,7 +1101,7 @@ function adjustLabelLength(delta) {
 
   if (newWidth !== currentWidth) {
     // Update to custom size, preserve continuous flag and tape height
-    state.labelSize = { width: newWidth, height: tapeHeight, continuous: state.labelSize.continuous || false };
+    state.labelSize = { ...state.labelSize, width: newWidth, height: tapeHeight, continuous: state.labelSize.continuous || false };
     $('#label-size').value = 'custom';
     $('#custom-size').classList.remove('hidden');
     $('#custom-width').value = newWidth;
@@ -1243,7 +1243,7 @@ function render() {
   const elementsToRender = state.ditherPreview
     ? evaluateExpressions(state.elements)
     : state.elements;
-  state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides);
+  state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides, state.labelSize?.cutlineSvg);
 }
 
 /**
@@ -2442,7 +2442,7 @@ function handleLabelSizeChange() {
     $('#custom-height').classList.remove('hidden');
     const w = validateLabelWidth($('#custom-width').value);
     const h = validateLabelHeight($('#custom-height').value);
-    state.labelSize = { width: w, height: h, round: false, continuous: false };
+    state.labelSize = { ...state.labelSize, width: w, height: h, round: false, continuous: false };
   } else {
     $('#custom-size').classList.add('hidden');
     const preset = LABEL_SIZES[value];
@@ -2487,7 +2487,7 @@ function handleCustomSizeChange() {
     $('#custom-height').classList.remove('hidden');
   }
 
-  state.labelSize = { width: w, height: h, round: isRound, continuous: isContinuous };
+  state.labelSize = { ...state.labelSize, width: w, height: h, round: isRound, continuous: isContinuous };
   state.renderer.setDimensions(state.labelSize.width, state.labelSize.height, state.zoom, isRound);
   updatePrintSize();
   updateLengthAdjustButtons();
