@@ -2280,12 +2280,36 @@ function updateToolbarState() {
   }
 }
 
+/** Apply one shared property change to an all-text selection. */
+function applySelectedTextChanges(changes, saveUndo = false) {
+  const selected = getSelectedElements();
+  if (!selected.length || selected.length !== state.selectedIds.length || selected.some(el => el.type !== 'text')) return;
+  if (selected.length === 1) {
+    modifyElement(selected[0].id, changes);
+    return;
+  }
+  if (saveUndo) saveHistory();
+  for (const element of selected) {
+    state.elements = updateElement(state.elements, element.id, changes);
+    state.renderer.clearCache(element.id);
+  }
+  autoCloneIfEnabled();
+  render();
+  updatePropertiesPanel();
+}
+
 /**
  * Update properties panel for selected element
  */
 function updatePropertiesPanel() {
-  const element = getSelected();
+  const selected = getSelectedElements();
   const selectedCount = state.selectedIds.length;
+  const multiText = selectedCount > 1 && selected.length === selectedCount && selected.every(el => el.type === 'text');
+  const element = getSelected() || (multiText ? selected[0] : null);
+  const common = (property, fallback) => {
+    const values = selected.map(el => el[property] ?? fallback);
+    return values.every(value => value === values[0]) ? values[0] : null;
+  };
 
   // Handle multi-selection or no selection
   if (!element) {
@@ -2302,6 +2326,10 @@ function updatePropertiesPanel() {
 
   $('#props-empty').classList.add('hidden');
   $('#props-content').classList.remove('hidden');
+
+  $('#props-transform').classList.toggle('hidden', multiText);
+  $('#props-transform-divider').classList.toggle('hidden', multiText);
+  $('#props-text-content').classList.toggle('hidden', multiText);
 
   // Update common properties
   $('#prop-x').value = Math.round(element.x);
@@ -2327,33 +2355,35 @@ function updatePropertiesPanel() {
     case 'text':
       $('#props-text').classList.remove('hidden');
       $('#prop-text-content').value = element.text || '';
-      $('#prop-font-family').value = element.fontFamily || 'Inter, sans-serif';
-      $('#prop-font-size').value = element.fontSize || 24;
-      $('#prop-no-wrap').checked = element.noWrap || false;
-      $('#prop-clip-overflow').checked = element.clipOverflow || false;
-      $('#prop-auto-scale').checked = element.autoScale || false;
+      $('#prop-font-family').value = common('fontFamily', 'Inter, sans-serif') ?? '';
+      $('#prop-font-size').value = common('fontSize', 24) ?? '';
+      for (const [selector, property] of [['#prop-no-wrap', 'noWrap'], ['#prop-clip-overflow', 'clipOverflow'], ['#prop-auto-scale', 'autoScale']]) {
+        const value = common(property, false);
+        $(selector).checked = value === true;
+        $(selector).indeterminate = value === null;
+      }
       // Update horizontal alignment buttons
       $$('.align-btn').forEach(btn => {
-        btn.classList.toggle('bg-gray-100', btn.dataset.align === element.align);
+        btn.classList.toggle('bg-gray-100', btn.dataset.align === common('align', 'left'));
       });
       // Update vertical alignment buttons
-      const vAlign = element.verticalAlign || 'middle';
+      const vAlign = common('verticalAlign', 'middle');
       $$('.valign-btn').forEach(btn => {
         btn.classList.toggle('bg-gray-100', btn.dataset.valign === vAlign);
       });
       // Update style buttons
-      $('#style-bold').classList.toggle('bg-gray-200', element.fontWeight === 'bold');
-      $('#style-italic').classList.toggle('bg-gray-200', element.fontStyle === 'italic');
-      $('#style-underline').classList.toggle('bg-gray-200', element.textDecoration === 'underline');
+      $('#style-bold').classList.toggle('bg-gray-200', common('fontWeight', 'normal') === 'bold');
+      $('#style-italic').classList.toggle('bg-gray-200', common('fontStyle', 'normal') === 'italic');
+      $('#style-underline').classList.toggle('bg-gray-200', common('textDecoration', 'none') === 'underline');
       // Update text color buttons
-      const colorValue = element.color || 'black';
+      const colorValue = common('color', 'black');
       $$('.color-btn').forEach(btn => {
         btn.classList.toggle('bg-gray-100', btn.dataset.color === colorValue);
         btn.classList.toggle('ring-2', btn.dataset.color === colorValue);
         btn.classList.toggle('ring-blue-400', btn.dataset.color === colorValue);
       });
       // Update background buttons
-      const bgValue = element.background || 'transparent';
+      const bgValue = common('background', 'transparent');
       $$('.bg-btn').forEach(btn => {
         btn.classList.toggle('bg-gray-100', btn.dataset.bg === bgValue);
         btn.classList.toggle('ring-2', btn.dataset.bg === bgValue);
@@ -7585,8 +7615,7 @@ function init() {
   });
   trackInputForHistory('#prop-font-family');
   $('#prop-font-family').addEventListener('change', (e) => {
-    const id = state.selectedIds[0];
-    if (id) modifyElement(id, { fontFamily: e.target.value });
+    applySelectedTextChanges({ fontFamily: e.target.value });
   });
 
   // Local fonts button
@@ -7595,14 +7624,12 @@ function init() {
   });
   trackInputForHistory('#prop-font-size');
   $('#prop-font-size').addEventListener('input', (e) => {
-    const id = state.selectedIds[0];
-    if (id) modifyElement(id, { fontSize: validateFontSize(e.target.value) });
+    if (e.target.value !== '') applySelectedTextChanges({ fontSize: validateFontSize(e.target.value) });
   });
   $$('.align-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = state.selectedIds[0];
-      if (id) {
-        modifyElement(id, { align: btn.dataset.align });
+      if (state.selectedIds.length) {
+        applySelectedTextChanges({ align: btn.dataset.align }, state.selectedIds.length > 1);
         $$('.align-btn').forEach(b => b.classList.toggle('bg-gray-100', b === btn));
       }
     });
@@ -7611,9 +7638,8 @@ function init() {
   // Vertical alignment buttons
   $$('.valign-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = state.selectedIds[0];
-      if (id) {
-        modifyElement(id, { verticalAlign: btn.dataset.valign });
+      if (state.selectedIds.length) {
+        applySelectedTextChanges({ verticalAlign: btn.dataset.valign }, state.selectedIds.length > 1);
         $$('.valign-btn').forEach(b => b.classList.toggle('bg-gray-100', b === btn));
       }
     });
@@ -7622,20 +7648,35 @@ function init() {
   // Create binding context for property panel controls
   const bindCtx = createBindingContext(state, getSelected, modifyElement);
 
+  // Text bindings operate on the entire selection only when every item is text.
+  const textBindCtx = {
+    ...bindCtx,
+    getSelected: () => {
+      const elements = getSelectedElements();
+      if (!elements.length || elements.length !== state.selectedIds.length || elements.some(el => el.type !== 'text')) return null;
+      const first = { ...elements[0] };
+      for (const property of ['fontWeight', 'fontStyle', 'textDecoration']) {
+        if (!elements.every(el => el[property] === first[property])) first[property] = null;
+      }
+      return first;
+    },
+    modifyElement: (_id, changes) => applySelectedTextChanges(changes, state.selectedIds.length > 1),
+  };
+
   // === TEXT ELEMENT BINDINGS ===
   // Checkboxes
-  bindCheckbox('#prop-no-wrap', 'noWrap', 'text', bindCtx);
-  bindCheckbox('#prop-clip-overflow', 'clipOverflow', 'text', bindCtx);
-  bindCheckbox('#prop-auto-scale', 'autoScale', 'text', bindCtx);
+  bindCheckbox('#prop-no-wrap', 'noWrap', 'text', textBindCtx);
+  bindCheckbox('#prop-clip-overflow', 'clipOverflow', 'text', textBindCtx);
+  bindCheckbox('#prop-auto-scale', 'autoScale', 'text', textBindCtx);
 
   // Font style toggle buttons
-  bindToggleButton('#style-bold', 'fontWeight', 'text', bindCtx);
-  bindToggleButton('#style-italic', 'fontStyle', 'text', bindCtx);
-  bindToggleButton('#style-underline', 'textDecoration', 'text', bindCtx);
+  bindToggleButton('#style-bold', 'fontWeight', 'text', textBindCtx);
+  bindToggleButton('#style-italic', 'fontStyle', 'text', textBindCtx);
+  bindToggleButton('#style-underline', 'textDecoration', 'text', textBindCtx);
 
   // Button groups
-  bindButtonGroup('.bg-btn', 'background', 'bg', 'text', bindCtx);
-  bindButtonGroup('.color-btn', 'color', 'color', 'text', bindCtx);
+  bindButtonGroup('.bg-btn', 'background', 'bg', 'text', textBindCtx);
+  bindButtonGroup('.color-btn', 'color', 'color', 'text', textBindCtx);
 
   // === SHAPE ELEMENT BINDINGS ===
   // Shape type dropdown (with special handling for corner radius visibility)

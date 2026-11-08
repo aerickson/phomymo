@@ -743,7 +743,7 @@
       <!-- Element Properties -->
       <div id="props-content" class="hidden">
         <!-- Transform: Position, Size, Rotation, Layer - Compact layout -->
-        <div class="space-y-2 mb-3">
+        <div id="props-transform" class="space-y-2 mb-3">
           <!-- Position & Size: X, Y, W, H in a single row -->
           <div class="grid grid-cols-4 gap-1.5">
             <div>
@@ -781,12 +781,12 @@
           </div>
         </div>
 
-        <hr class="my-3 border-gray-200">
+        <hr id="props-transform-divider" class="my-3 border-gray-200">
 
         <!-- Text Properties -->
         <div id="props-text" class="hidden space-y-2">
           <!-- Text Content -->
-          <div>
+          <div id="props-text-content">
             <div class="flex items-center justify-between mb-1">
               <label class="text-[10px] text-gray-400 uppercase tracking-wide">Text</label>
               <div class="flex items-center gap-2">
@@ -829,6 +829,7 @@
             <div class="col-span-2">
               <label class="text-[10px] text-gray-400 uppercase tracking-wide">Font</label>
               <select id="prop-font-family" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
+                <option value="" hidden>Mixed</option>
                 <optgroup label="Sans-Serif">
                   <option value="Inter, sans-serif">Inter</option>
                   <option value="Roboto, sans-serif">Roboto</option>
@@ -2143,7 +2144,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=151"></script>
+  <script type="module" src="app.js?v=152"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {
