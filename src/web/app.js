@@ -4,7 +4,7 @@
  * v116
  */
 
-import { CanvasRenderer } from './canvas.js?v=115';
+import { CanvasRenderer } from './canvas.js?v=116';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=128';
@@ -1814,6 +1814,9 @@ function showFullPreview(recordIndex) {
   ctx.fillStyle = 'white';
   ctx.fillRect(0, 0, dims.width, dims.height);
   state.renderer.renderAllToContext(ctx, mergedElements, []);
+  if ($('#full-preview-cutlines').checked) {
+    state.renderer.drawCutline(state.labelSize?.cutlineSvg, ctx);
+  }
 
   // Update label info
   const firstField = state.templateFields[0];
@@ -8131,6 +8134,7 @@ function init() {
   $('#full-preview-dialog').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) hideFullPreview();
   });
+  $('#full-preview-cutlines').addEventListener('change', () => showFullPreview(state.currentPreviewIndex));
   $('#full-preview-prev').addEventListener('click', () => navigatePreview(-1));
   $('#full-preview-next').addEventListener('click', () => navigatePreview(1));
   $('#full-preview-include').addEventListener('change', (e) => {

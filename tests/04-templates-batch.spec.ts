@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { waitForAppReady, dismissInfoDialog, screenshot } from './helpers/app';
 import path from 'path';
+import fs from 'fs';
 
 const CH = '04-templates-batch';
 
@@ -95,4 +96,26 @@ test.describe.serial('Templates and Batch Printing', () => {
 
     await screenshot(page, CH, 5, 'preview-grid');
   });
+  test('toggle non-printing outlines in full preview', async ({ page }) => {
+    const design = JSON.parse(fs.readFileSync(path.join(__dirname, '../templates/cable-tag-4850-52-4.02x1.89.json'), 'utf8'));
+    design.templateData = [{ CableLabel: 'TEST' }, { CableLabel: 'NEXT' }];
+    await page.locator('#import-file-input').setInputFiles({ name: 'design.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(design)) });
+    await expect(page.locator('#template-toolbar-btn')).toBeVisible();
+    await page.click('#template-toolbar-btn');
+    await page.click('#template-quick-preview');
+    await page.locator('.preview-thumbnail').first().click();
+    const checkbox = page.locator('#full-preview-cutlines');
+    await expect(checkbox).not.toBeChecked();
+    const canvas = page.locator('#full-preview-canvas');
+    const without = await canvas.evaluate((el: HTMLCanvasElement) => el.toDataURL());
+    await checkbox.check();
+    const withOutlines = await canvas.evaluate((el: HTMLCanvasElement) => el.toDataURL());
+    expect(withOutlines).not.toBe(without);
+    await page.click('#full-preview-next');
+    await expect(checkbox).toBeChecked();
+    await page.click('#full-preview-prev');
+    await checkbox.uncheck();
+    expect(await canvas.evaluate((el: HTMLCanvasElement) => el.toDataURL())).toBe(without);
+  });
+
 });

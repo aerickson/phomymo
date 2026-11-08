@@ -770,11 +770,10 @@ export class CanvasRenderer {
    * Draw a nonprinting die-cut/perforation guide. SVG coordinates are millimeters,
    * so the path stays its physical size if a continuous label is length-adjusted.
    */
-  drawCutline(svgSource) {
+  drawCutline(svgSource, ctx = this.ctx) {
     const cutline = this.parseCutlineSvg(svgSource);
     if (!cutline) return;
 
-    const ctx = this.ctx;
     const [viewX, viewY] = cutline.viewBox;
     ctx.save();
     ctx.beginPath();

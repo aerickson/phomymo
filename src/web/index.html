@@ -1668,6 +1668,11 @@
         <canvas id="full-preview-canvas" class="bg-white shadow-lg rounded max-w-full"></canvas>
       </div>
 
+      <label class="px-4 pb-2 flex items-center gap-2 text-sm text-gray-600">
+        <input type="checkbox" id="full-preview-cutlines" class="rounded">
+        Show non-printing outlines
+      </label>
+
       <div class="p-4 border-t border-gray-200 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <button id="full-preview-prev" class="p-2 hover:bg-gray-100 rounded-lg" title="Previous">
@@ -2143,7 +2148,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=151"></script>
+  <script type="module" src="app.js?v=152"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {
