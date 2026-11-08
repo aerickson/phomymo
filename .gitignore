@@ -4,6 +4,8 @@
 !README.md
 !docs/manual.md
 node_modules/
+# don't commit our testing saves and templates
+templates/*.json
 
 # Playwright
 test-results/
