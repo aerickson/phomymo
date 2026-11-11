@@ -5225,6 +5225,37 @@ function updateElementsList() {
   });
 }
 
+/** List template fields used by text elements and select matching elements. */
+function updateElementGroupsList() {
+  const container = $('#element-groups-list');
+  container.replaceChildren();
+  const textElements = state.elements.filter(element => element.type === 'text');
+  const fields = extractFields(textElements.map(element => ({ text: element.text })));
+  if (!fields.length) {
+    const empty = document.createElement('div');
+    empty.className = 'px-3 py-2 text-gray-400 text-center';
+    empty.textContent = 'No text fields';
+    container.appendChild(empty);
+    return;
+  }
+  for (const field of fields) {
+    const button = document.createElement('button');
+    button.className = 'w-full px-3 py-2 text-left hover:bg-gray-100';
+    button.textContent = `{{${field}}}`;
+    button.addEventListener('click', () => {
+      state.selectedIds = state.elements
+        .filter(element => element.type === 'text' && extractFields([{ text: element.text }]).includes(field))
+        .map(element => element.id);
+      updateToolbarState();
+      updatePropertiesPanel();
+      render();
+      $('#element-groups-dropdown').classList.add('hidden');
+      $('#element-groups-btn').setAttribute('aria-expanded', 'false');
+    });
+    container.appendChild(button);
+  }
+}
+
 /**
  * Get icon SVG for element type
  */
@@ -7519,14 +7550,30 @@ function init() {
   $('#elements-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     $('#export-dropdown').classList.add('hidden'); // Close other dropdown
+    $('#element-groups-dropdown').classList.add('hidden');
+    $('#element-groups-btn').setAttribute('aria-expanded', 'false');
     updateElementsList();
     $('#elements-dropdown').classList.toggle('hidden');
+  });
+
+  $('#element-groups-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    $('#elements-dropdown').classList.add('hidden');
+    $('#export-dropdown').classList.add('hidden');
+    updateElementGroupsList();
+    const dropdown = $('#element-groups-dropdown');
+    dropdown.classList.toggle('hidden');
+    $('#element-groups-btn').setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
   });
 
   // Close dropdowns when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#elements-btn') && !e.target.closest('#elements-dropdown')) {
       $('#elements-dropdown').classList.add('hidden');
+    }
+    if (!e.target.closest('#element-groups-btn') && !e.target.closest('#element-groups-dropdown')) {
+      $('#element-groups-dropdown').classList.add('hidden');
+      $('#element-groups-btn').setAttribute('aria-expanded', 'false');
     }
     if (!e.target.closest('#export-btn') && !e.target.closest('#export-dropdown')) {
       $('#export-dropdown').classList.add('hidden');

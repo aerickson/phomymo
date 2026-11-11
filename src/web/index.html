@@ -589,6 +589,17 @@
         </div>
       </div>
 
+      <!-- Select text elements that reference a template field -->
+      <div class="relative flex items-center">
+        <button id="element-groups-btn" class="toolbar-btn toolbar-btn-menu" title="Select elements by template field" aria-expanded="false" aria-controls="element-groups-dropdown">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h6M4 12h6M4 18h6M14 6h6M14 12h6M14 18h6"/></svg>
+          <span>Element Groups</span>
+        </button>
+        <div id="element-groups-dropdown" class="hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[60] py-1 min-w-[180px] max-h-[300px] overflow-y-auto">
+          <div id="element-groups-list" class="text-sm"></div>
+        </div>
+      </div>
+
       <div class="toolbar-divider hidden" id="template-toolbar-divider"></div>
 
       <!-- Template Manage Data (shows when template fields detected) -->
